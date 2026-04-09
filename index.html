@@ -407,6 +407,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
           <select id="reportMonth" onchange="loadReport()">
             <!-- Populated by JS -->
           </select>
+          <select id="reportQuarter" onchange="loadReport()" class="hidden">
+            <option value="1">Q1 (Jan–Mar)</option>
+            <option value="2">Q2 (Apr–Jun)</option>
+            <option value="3">Q3 (Jul–Sep)</option>
+            <option value="4">Q4 (Oct–Dec)</option>
+          </select>
           <select id="reportYear" onchange="loadReport()">
             <!-- Populated by JS -->
           </select>
@@ -430,12 +436,28 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
         <!-- Attendance % view: expected sessions input -->
         <div id="pctControls" class="hidden">
-          <div class="expected-input-row">
-            <label>Expected sessions in period:</label>
-            <input type="number" id="expectedSessions" value="4" min="1" max="52" oninput="loadPctReport()"/>
-            <span>(e.g. 4 = once per week for a month)</span>
+          <div class="expected-input-row" style="flex-wrap:wrap;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <label style="white-space:nowrap">Training day:</label>
+              <select id="trainingDay" onchange="autoCalcExpected()" style="padding:7px 28px 7px 10px;font-size:13px;border:1.5px solid #DDE1E9;border-radius:var(--radius-sm);font-family:var(--font);outline:none;background:#fff">
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4" selected>Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+                <option value="-1">Custom (enter manually)</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <label style="white-space:nowrap">Expected sessions:</label>
+              <input type="number" id="expectedSessions" value="4" min="1" max="52"
+                oninput="loadPctReport()" style="width:65px;padding:7px 10px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;border:1.5px solid #DDE1E9;border-radius:var(--radius-sm);outline:none"/>
+              <span style="font-size:12px;color:var(--grey-md)" id="expectedHint">in period</span>
+            </div>
           </div>
-          <div class="pct-summary-note" id="pctNote"></div>
+          <div class="pct-summary-note" id="pctNote" style="margin-top:8px"></div>
         </div>
 
         <div class="filter-row" style="margin-bottom:10px">
@@ -506,7 +528,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 // ════════════════════════════════════════════════════════════════════
 
 // ══ CONFIG — paste your Apps Script URL here for all-device persistence ══
-const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEMwiTEEPaXodrGAafNVYlZfnVwi181MXI5jWFjVwP5Oyga3j6SuVrAx9MIu15mcQFrw/exec"; // ← PASTE YOUR SCRIPT URL HERE
+const HARDCODED_SCRIPT_URL = ""; // ← PASTE YOUR SCRIPT URL HERE
 
 let SCRIPT_URL = HARDCODED_SCRIPT_URL || localStorage.getItem("ses_script_url") || "";
 let ADMIN_PIN  = localStorage.getItem("ses_admin_pin") || "1234";
@@ -908,46 +930,60 @@ function populateReportFilters(){
   const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   document.getElementById("customFrom").value=`${y}-${m}-01`;
   document.getElementById("customTo").value=`${y}-${m}-${pad2(lastDay)}`;
+
+  // Set default quarter to current quarter
+  const curQ = Math.floor(now.getMonth()/3)+1;
+  document.getElementById("reportQuarter").value = curQ;
 }
 
 function updateReportRange(){
-  const period=document.getElementById("reportPeriod").value;
-  const isCustom=period==="custom";
-  document.getElementById("customRange").classList.toggle("hidden",!isCustom);
-  document.getElementById("reportMonth").classList.toggle("hidden",isCustom||period==="quarterly");
+  const period   = document.getElementById("reportPeriod").value;
+  const isCustom = period==="custom";
+  const isQtr    = period==="quarterly";
 
-  // For quarterly: set month to Q start months
-  if(period==="quarterly"){
+  document.getElementById("customRange").classList.toggle("hidden",  !isCustom);
+  document.getElementById("reportMonth").classList.toggle("hidden",   isCustom||isQtr);
+  document.getElementById("reportQuarter").classList.toggle("hidden", !isQtr);
+
+  // Default quarter selector to current quarter
+  if(isQtr){
     const now=new Date();
-    const q=Math.floor(now.getMonth()/3);
-    const qMonths=["01","04","07","10"];
-    document.getElementById("reportMonth").value=qMonths[q];
+    const q=Math.floor(now.getMonth()/3)+1;
+    document.getElementById("reportQuarter").value=q;
   }
   loadReport();
 }
 
 function getReportRange(){
-  const period=document.getElementById("reportPeriod").value;
-  const year=document.getElementById("reportYear").value;
+  const period = document.getElementById("reportPeriod").value;
+  const year   = document.getElementById("reportYear").value;
+
   if(period==="custom"){
-    return{from:document.getElementById("customFrom").value,to:document.getElementById("customTo").value};
+    return { from:document.getElementById("customFrom").value, to:document.getElementById("customTo").value };
   }
+
   if(period==="monthly"){
-    const month=document.getElementById("reportMonth").value;
-    const lastDay=new Date(parseInt(year),parseInt(month),0).getDate();
-    return{from:`${year}-${month}-01`,to:`${year}-${month}-${pad2(lastDay)}`};
+    const month   = document.getElementById("reportMonth").value;
+    const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+    return { from:`${year}-${month}-01`, to:`${year}-${month}-${pad2(lastDay)}` };
   }
-  // Quarterly
-  const month=document.getElementById("reportMonth").value;
-  const qStart=parseInt(month);
-  const qEnd=Math.min(qStart+2,12);
-  const lastDay=new Date(parseInt(year),qEnd,0).getDate();
-  return{from:`${year}-${pad2(qStart)}-01`,to:`${year}-${pad2(qEnd)}-${pad2(lastDay)}`};
+
+  // Quarterly — use the dedicated quarter selector
+  const q        = parseInt(document.getElementById("reportQuarter").value||1);
+  const qStartM  = (q-1)*3 + 1;           // Q1→1, Q2→4, Q3→7, Q4→10
+  const qEndM    = qStartM + 2;            // Q1→3, Q2→6, Q3→9, Q4→12
+  const lastDay  = new Date(parseInt(year), qEndM, 0).getDate();
+  return {
+    from: `${year}-${pad2(qStartM)}-01`,
+    to:   `${year}-${pad2(qEndM)}-${pad2(lastDay)}`
+  };
 }
 
 function loadReport(){
   if(!adminUnlocked) return;
   const {from,to}=getReportRange();
+  // Auto-update expected sessions whenever period changes
+  if(currentReportView==="pct") autoCalcExpected();
   const purposeFilter=document.getElementById("filterPurpose").value;
   const memberFilter=document.getElementById("filterMember").value;
 
@@ -1031,8 +1067,32 @@ function switchReportView(view){
   document.getElementById("summaryWrap").classList.toggle("hidden", view!=="summary");
   document.getElementById("pctControls").classList.toggle("hidden", view!=="pct");
 
-  if(view==="pct")     loadPctReport();
+  if(view==="pct")     { autoCalcExpected(); }
   if(view==="summary") loadSummaryReport();
+}
+
+// ── Auto-calculate expected sessions from date range ─────────────────────────
+function autoCalcExpected(){
+  const dayOfWeek = parseInt(document.getElementById("trainingDay").value);
+  if(dayOfWeek === -1){ return; } // manual — don't override
+
+  const {from, to} = getReportRange();
+  if(!from || !to){ return; }
+
+  // Count occurrences of the selected weekday between from and to (inclusive)
+  const start = new Date(from + "T00:00:00");
+  const end   = new Date(to   + "T00:00:00");
+  let count = 0;
+  const cur = new Date(start);
+  // Find first occurrence of training day on or after start
+  while(cur.getDay() !== dayOfWeek){ cur.setDate(cur.getDate()+1); }
+  // Count every 7 days until we pass end
+  while(cur <= end){ count++; cur.setDate(cur.getDate()+7); }
+
+  document.getElementById("expectedSessions").value = count;
+  const hint = document.getElementById("expectedHint");
+  if(hint) hint.textContent = `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dayOfWeek]}s in period`;
+  loadPctReport();
 }
 
 // ── Attendance % report ───────────────────────────────────────────────────────
@@ -1220,13 +1280,17 @@ function exportCSV(){
   } else {
     csv=[header,...rows].map(r=>r.map(v=>`"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
   }
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=`SES_Attendance_${currentReportView}_${from}_to_${to}.csv`;
+  // Add UTF-8 BOM so Excel opens it correctly
+  const bom  = "\uFEFF";
+  const blob = new Blob([bom + csv], {type:"text/csv;charset=utf-8;"});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `SES_Attendance_${currentReportView}_${from}_to_${to}.csv`;
+  a.style.display = "none";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
