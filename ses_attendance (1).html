@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Point Cook SES — Attendance</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --orange:#E8620A;--orange-dk:#BF4E06;--orange-lt:#FEF0E7;--orange-mid:#F9C9A3;
+  --navy:#0D2137;--navy-lt:#1A3A5C;--navy-xlt:#EBF0F6;
+  --green:#1B7A47;--green-lt:#E8F5EE;
+  --red:#C0392B;--red-lt:#FDEDEC;
+  --grey:#F4F5F7;--grey-md:#8A94A6;--grey-dk:#2D3748;
+  --white:#FFFFFF;
+  --font:'Barlow',sans-serif;
+  --font-cond:'Barlow Condensed',sans-serif;
+  --radius:14px;--radius-sm:9px;
+  --shadow:0 4px 20px rgba(13,33,55,.10);
+  --shadow-sm:0 2px 8px rgba(13,33,55,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--grey);min-height:100vh;padding-bottom:48px}
+
+/* ── Header ── */
+.header{background:var(--navy);padding:0;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,.015) 20px,rgba(255,255,255,.015) 40px)}
+.header-inner{position:relative;max-width:520px;margin:0 auto;padding:18px 20px 16px;display:flex;align-items:center;gap:14px}
+.header-logo{width:46px;height:46px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-cond);font-weight:800;font-size:13px;color:#fff;letter-spacing:.5px;line-height:1.1;text-align:center}
+.header-text h1{font-family:var(--font-cond);font-size:19px;font-weight:800;color:#fff;letter-spacing:.3px;line-height:1.1}
+.header-text p{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px;letter-spacing:.6px;text-transform:uppercase;font-weight:500}
+.header-badge{margin-left:auto;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.4px;flex-shrink:0}
+.badge-live{background:rgba(232,98,10,.25);color:var(--orange-mid);border:1px solid rgba(232,98,10,.3)}
+
+/* ── Nav ── */
+.nav{background:var(--navy-lt);border-bottom:2px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:20}
+.nav-inner{max-width:520px;margin:0 auto;display:flex}
+.nav-tab{flex:1;padding:12px 6px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,255,255,.4);cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;letter-spacing:.5px;text-transform:uppercase;font-family:var(--font-cond)}
+.nav-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+
+/* ── Container ── */
+.container{max-width:520px;margin:0 auto;padding:20px 16px}
+
+/* ── Cards ── */
+.card{background:var(--white);border-radius:var(--radius);padding:22px;margin-bottom:16px;box-shadow:var(--shadow-sm);border:1px solid rgba(13,33,55,.06)}
+.card-label{font-family:var(--font-cond);font-size:11px;font-weight:700;color:var(--grey-md);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-label::after{content:'';flex:1;height:1px;background:var(--grey)}
+
+/* ── Form ── */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--grey-dk);margin-bottom:6px;letter-spacing:.1px}
+.field label span{font-weight:400;color:var(--grey-md)}
+input[type=text],input[type=time],input[type=email],input[type=password],select,textarea{
+  width:100%;padding:12px 14px;border:1.5px solid #DDE1E9;border-radius:var(--radius-sm);
+  font-size:14px;font-family:var(--font);color:var(--grey-dk);background:var(--white);
+  outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,98,10,.10)}
+input[type=time]{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:16px;letter-spacing:.5px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A94A6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:420px){.field-row{grid-template-columns:1fr}}
+
+/* ── Purpose chips ── */
+.purpose-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.purpose-chip{padding:8px 15px;border:1.5px solid #DDE1E9;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--white);color:var(--grey-dk);font-family:var(--font)}
+.purpose-chip:hover{border-color:var(--orange);color:var(--orange)}
+.purpose-chip.active{border-color:var(--orange);background:var(--orange-lt);color:var(--orange-dk)}
+
+/* ── Time display ── */
+.time-now{text-align:center;margin-bottom:18px}
+.time-now .clock{font-family:var(--font-cond);font-size:52px;font-weight:800;color:var(--navy);letter-spacing:2px;line-height:1}
+.time-now .date-str{font-size:13px;color:var(--grey-md);margin-top:4px;letter-spacing:.3px}
+
+/* ── Buttons ── */
+.btn{width:100%;padding:15px;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font-cond);letter-spacing:.5px;transition:all .18s}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange-dk)}
+.btn-primary:disabled{background:#C5CAD6;cursor:not-allowed}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#155C36}
+.btn-ghost{background:transparent;border:1.5px solid #DDE1E9;color:var(--grey-md);margin-top:10px;font-size:14px}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-blue{background:var(--navy);color:#fff}
+.btn-blue:hover{background:var(--navy-lt)}
+
+/* ── Alert / status ── */
+.alert{padding:12px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:14px;line-height:1.6;display:flex;align-items:flex-start;gap:10px}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.alert.success{background:var(--green-lt);color:var(--green);border:1px solid #A9DFC0}
+.alert.error{background:var(--red-lt);color:var(--red);border:1px solid #F5C6C2}
+.alert.info{background:var(--navy-xlt);color:var(--navy);border:1px solid #C5D3E0}
+.alert.warning{background:var(--orange-lt);color:var(--orange-dk);border:1px solid var(--orange-mid)}
+.hidden{display:none!important}
+
+/* ── Currently in list ── */
+.checkin-list{display:flex;flex-direction:column;gap:10px}
+.checkin-item{border:1px solid #EEF0F4;border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;gap:12px;background:var(--white)}
+.checkin-item.active-item{border-left:4px solid var(--green)}
+.member-avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:var(--font-cond);font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.member-info{flex:1}
+.member-name{font-size:14px;font-weight:700;color:var(--grey-dk)}
+.member-sub{font-size:12px;color:var(--grey-md);margin-top:2px}
+.checkout-btn{padding:6px 13px;background:var(--orange-lt);color:var(--orange-dk);border:1.5px solid var(--orange-mid);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.checkout-btn:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
+.checkin-duration{font-family:var(--font-cond);font-size:12px;font-weight:600;color:var(--grey-md);background:var(--grey);padding:2px 8px;border-radius:10px;flex-shrink:0}
+
+/* ── Stats bar ── */
+.stats-bar{display:flex;gap:10px;margin-bottom:16px}
+.stat-card{flex:1;background:var(--white);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid rgba(13,33,55,.06)}
+.stat-num{font-family:var(--font-cond);font-size:28px;font-weight:800;color:var(--navy);line-height:1}
+.stat-lbl{font-size:10px;color:var(--grey-md);margin-top:3px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+
+/* ── Checkout success ── */
+.success-screen{text-align:center;padding:28px 16px}
+.success-circle{width:80px;height:80px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px}
+.success-circle.orange-bg{background:var(--orange-lt);border:2px solid var(--orange-mid)}
+.success-circle.green-bg{background:var(--green-lt);border:2px solid #A9DFC0}
+.success-title{font-family:var(--font-cond);font-size:26px;font-weight:800;margin-bottom:6px}
+.success-sub{font-size:14px;color:var(--grey-md);line-height:1.6;margin-bottom:22px}
+.duration-pill{display:inline-block;background:var(--navy);color:#fff;font-family:var(--font-cond);font-size:16px;font-weight:700;padding:6px 20px;border-radius:20px;margin-bottom:20px}
+
+/* ── Admin ── */
+.pin-card{text-align:center;padding:28px 20px}
+.pin-card h2{font-family:var(--font-cond);font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px}
+.pin-card p{font-size:13px;color:var(--grey-md);margin-bottom:20px}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:22px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #DDE1E9;transition:all .2s}
+.pin-dot.filled{background:var(--navy);border-color:var(--navy)}
+.pin-dot.err{background:var(--red);border-color:var(--red)}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto}
+.pin-key{padding:14px;border:1.5px solid #DDE1E9;border-radius:10px;font-family:var(--font-cond);font-size:22px;font-weight:700;cursor:pointer;background:var(--white);color:var(--navy);transition:all .15s}
+.pin-key:active{background:var(--grey);transform:scale(.97)}
+.pin-err{color:var(--red);font-size:13px;margin-top:12px;min-height:18px}
+.pin-hint{margin-top:14px;font-size:11px;color:#C5CAD6}
+
+/* ── Report filters ── */
+.filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-row select{flex:1;min-width:120px;font-size:13px;padding:9px 32px 9px 12px}
+.filter-row button{padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-cond);border:none;letter-spacing:.3px}
+
+/* ── Report table ── */
+.report-table-wrap{overflow-x:auto;margin-top:4px}
+.report-table{width:100%;border-collapse:collapse;font-size:13px}
+.report-table th{background:var(--navy);color:rgba(255,255,255,.8);padding:9px 12px;text-align:left;font-family:var(--font-cond);font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:11px;white-space:nowrap}
+.report-table td{padding:9px 12px;border-bottom:1px solid #F0F2F5;color:var(--grey-dk);vertical-align:middle}
+.report-table tr:last-child td{border-bottom:none}
+.report-table tr:hover td{background:#FAFBFC}
+.report-table .duration-tag{background:var(--navy-xlt);color:var(--navy);font-family:var(--font-cond);font-weight:700;padding:2px 8px;border-radius:8px;font-size:12px}
+.report-table .purpose-tag{padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700}
+.pt-training{background:var(--orange-lt);color:var(--orange-dk)}
+.pt-admin{background:var(--navy-xlt);color:var(--navy-lt)}
+.pt-maintenance{background:#EEF7EE;color:#1B7A47}
+.pt-other{background:var(--grey);color:var(--grey-md)}
+.report-summary{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.rs-card{flex:1;min-width:80px;background:var(--navy);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.rs-num{font-family:var(--font-cond);font-size:24px;font-weight:800;color:#fff}
+.rs-lbl{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.empty-report{text-align:center;padding:40px;color:var(--grey-md)}
+.empty-report .empty-icon{font-size:36px;margin-bottom:10px}
+.setup-banner{background:var(--navy-xlt);border:1px solid #C5D3E0;border-radius:var(--radius-sm);padding:13px 15px;font-size:13px;color:var(--navy);margin-bottom:16px;line-height:1.6}
+.setup-banner strong{display:block;font-weight:700;margin-bottom:4px}
+.config-row{display:flex;gap:8px;margin-top:8px}
+.config-row input{flex:1;font-size:12px;padding:8px 10px}
+.config-row button{padding:8px 14px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font)}
+.export-btn{padding:10px 18px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-cond);letter-spacing:.4px;transition:background .2s}
+.export-btn:hover{background:#155C36}
+
+/* ── Attendance % report ── */
+.report-view-tabs{display:flex;gap:0;margin-bottom:16px;border:1.5px solid #DDE1E9;border-radius:var(--radius-sm);overflow:hidden}
+.report-view-tab{flex:1;padding:9px 8px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-cond);letter-spacing:.5px;text-transform:uppercase;transition:all .15s;background:var(--white);color:var(--grey-md);border:none}
+.report-view-tab.active{background:var(--navy);color:#fff}
+.report-view-tab:not(:last-child){border-right:1.5px solid #DDE1E9}
+.pct-table{width:100%;border-collapse:collapse;font-size:13px}
+.pct-table th{background:var(--navy);color:rgba(255,255,255,.8);padding:9px 12px;text-align:left;font-family:var(--font-cond);font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:11px;white-space:nowrap}
+.pct-table td{padding:10px 12px;border-bottom:1px solid #F0F2F5;color:var(--grey-dk);vertical-align:middle}
+.pct-table tr:last-child td{border-bottom:none}
+.pct-table tr:hover td{background:#FAFBFC}
+.pct-bar-wrap{display:flex;align-items:center;gap:8px;min-width:120px}
+.pct-bar-bg{flex:1;height:8px;background:#EEF0F4;border-radius:4px;overflow:hidden;min-width:60px}
+.pct-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.pct-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;min-width:38px;text-align:right;flex-shrink:0}
+.pct-high{color:var(--green)}.pct-mid{color:var(--orange)}.pct-low{color:var(--red)}
+.pct-bar-high{background:var(--green)}.pct-bar-mid{background:var(--orange)}.pct-bar-low{background:var(--red)}
+.session-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;background:var(--navy-xlt);color:var(--navy);padding:2px 8px;border-radius:8px}
+.pct-summary-note{font-size:11px;color:var(--grey-md);margin-bottom:12px;line-height:1.5;background:var(--grey);border-radius:6px;padding:8px 10px}
+.expected-input-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.expected-input-row label{font-size:12px;font-weight:600;color:var(--grey-dk);white-space:nowrap}
+.expected-input-row input{width:70px;padding:7px 10px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px}
+.expected-input-row span{font-size:12px;color:var(--grey-md)}
+.rank-medal{font-size:16px;margin-right:2px}
+.hrs-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--grey-md)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">SES</div>
+    <div class="header-text">
+      <h1>Point Cook SES</h1>
+      <p>Attendance Register</p>
+    </div>
+    <div class="header-badge badge-live" id="liveBadge">● LIVE</div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-inner">
+    <div class="nav-tab active" id="navCheckin"  onclick="showTab('checkin')">Check In</div>
+    <div class="nav-tab"        id="navPresent"  onclick="showTab('present')">Present</div>
+    <div class="nav-tab"        id="navAdmin"    onclick="showTab('admin')">Admin</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Setup banner -->
+  <div class="setup-banner hidden" id="setupBanner">
+    <strong>Connect to Google Sheets for live data sync</strong>
+    Paste your Google Apps Script Web App URL. Once saved, all check-ins sync across every device.
+    <div class="config-row">
+      <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/..."/>
+      <button onclick="saveScriptUrl()">Save</button>
+    </div>
+  </div>
+
+  <!-- ══ CHECK IN TAB ══ -->
+  <div id="tabCheckin">
+
+    <!-- Clock -->
+    <div class="card" style="padding:18px 22px">
+      <div class="time-now">
+        <div class="clock" id="clockDisplay">00:00</div>
+        <div class="date-str" id="dateDisplay">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Check-in form / checkout form / success screens -->
+    <div id="checkinForm">
+      <div class="card">
+        <div class="card-label">Member details</div>
+
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" id="memberName" placeholder="e.g. John Smith" autocomplete="name"/>
+        </div>
+
+        <div class="field">
+          <label>Purpose of visit</label>
+          <div class="purpose-wrap" id="purposeWrap">
+            <div class="purpose-chip" onclick="selPurpose(this,'Weekly Training')">Weekly Training</div>
+            <div class="purpose-chip" onclick="selPurpose(this,'Unit Meeting')">Unit Meeting</div>
+            <div class="purpose-chip" onclick="selPurpose(this,'Equipment Maintenance')">Equipment Maintenance</div>
+            <div class="purpose-chip" onclick="selPurpose(this,'Admin / Planning')">Admin / Planning</div>
+            <div class="purpose-chip" onclick="selPurpose(this,'Special Exercise')">Special Exercise</div>
+            <div class="purpose-chip" onclick="selPurpose(this,'Other')">Other</div>
+          </div>
+          <input type="text" id="purposeOther" placeholder="Describe your visit..." style="margin-top:10px;display:none"/>
+        </div>
+
+        <div class="field">
+          <label>Check-in time <span>(auto-filled — adjust if needed)</span></label>
+          <input type="time" id="checkinTime"/>
+        </div>
+      </div>
+
+      <div id="checkinAlert" class="hidden"></div>
+      <button class="btn btn-primary" onclick="submitCheckin()" id="checkinBtn">Check In Now</button>
+    </div>
+
+    <!-- Returning member checkout -->
+    <div id="checkoutForm" class="hidden">
+      <div class="card">
+        <div class="card-label">Check out</div>
+        <div style="margin-bottom:16px">
+          <div id="checkoutWelcome" style="font-size:15px;font-weight:600;color:var(--grey-dk);margin-bottom:4px"></div>
+          <div id="checkoutSub" style="font-size:13px;color:var(--grey-md)"></div>
+        </div>
+        <div class="field">
+          <label>Check-out time <span>(auto-filled — adjust if needed)</span></label>
+          <input type="time" id="checkoutTime"/>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="submitCheckout()" id="checkoutBtn">Confirm Check Out</button>
+      <button class="btn btn-ghost" onclick="cancelCheckout()">Not me — check in instead</button>
+    </div>
+
+    <!-- Check-in success -->
+    <div id="checkinSuccess" class="hidden">
+      <div class="card">
+        <div class="success-screen">
+          <div class="success-circle orange-bg">&#9650;</div>
+          <div class="success-title" style="color:var(--orange-dk)">Checked In!</div>
+          <div class="success-sub" id="checkinSuccessSub"></div>
+          <button class="btn btn-ghost" onclick="resetCheckin()" style="max-width:200px;margin:0 auto">Check in another member</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check-out success -->
+    <div id="checkoutSuccess" class="hidden">
+      <div class="card">
+        <div class="success-screen">
+          <div class="success-circle green-bg">&#10003;</div>
+          <div class="success-title" style="color:var(--green)">Checked Out!</div>
+          <div class="success-sub" id="checkoutSuccessSub"></div>
+          <div class="duration-pill" id="durationPill"></div>
+          <button class="btn btn-ghost" onclick="resetCheckin()" style="max-width:200px;margin:0 auto">Back to check-in</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tabCheckin -->
+
+  <!-- ══ PRESENT TAB ══ -->
+  <div id="tabPresent" class="hidden">
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-num" id="statPresent" style="color:var(--green)">0</div>
+        <div class="stat-lbl">Present</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statToday" style="color:var(--orange)">0</div>
+        <div class="stat-lbl">Today total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statSession" style="color:var(--navy)">—</div>
+        <div class="stat-lbl">Avg. hrs</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Currently signed in</div>
+      <div id="presentList">
+        <div class="empty-report" style="padding:24px">
+          <div class="empty-icon">&#128100;</div>
+          <p>No members currently checked in</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="checkedOutCard">
+      <div class="card-label">Checked out today</div>
+      <div id="checkedOutList">
+        <div style="text-align:center;color:var(--grey-md);padding:16px;font-size:13px">No check-outs recorded today yet</div>
+      </div>
+    </div>
+
+  </div><!-- /tabPresent -->
+
+  <!-- ══ ADMIN TAB ══ -->
+  <div id="tabAdmin" class="hidden">
+
+    <!-- PIN screen -->
+    <div id="adminPinScreen">
+      <div class="card">
+        <div class="pin-card">
+          <h2>Admin Access</h2>
+          <p>Enter your 4-digit PIN to access reports and settings</p>
+          <div class="pin-dots">
+            <div class="pin-dot" id="apd0"></div><div class="pin-dot" id="apd1"></div>
+            <div class="pin-dot" id="apd2"></div><div class="pin-dot" id="apd3"></div>
+          </div>
+          <div class="pin-keypad">
+            <button class="pin-key" onclick="adminPin('1')">1</button>
+            <button class="pin-key" onclick="adminPin('2')">2</button>
+            <button class="pin-key" onclick="adminPin('3')">3</button>
+            <button class="pin-key" onclick="adminPin('4')">4</button>
+            <button class="pin-key" onclick="adminPin('5')">5</button>
+            <button class="pin-key" onclick="adminPin('6')">6</button>
+            <button class="pin-key" onclick="adminPin('7')">7</button>
+            <button class="pin-key" onclick="adminPin('8')">8</button>
+            <button class="pin-key" onclick="adminPin('9')">9</button>
+            <button class="pin-key" onclick="adminPin('c')" style="font-size:13px;color:var(--grey-md)">Clear</button>
+            <button class="pin-key" onclick="adminPin('0')">0</button>
+            <button class="pin-key" onclick="adminPin('del')" style="font-size:15px">&#9003;</button>
+          </div>
+          <div class="pin-err" id="adminPinErr"></div>
+          <div class="pin-hint">Default PIN: 1234</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin panel -->
+    <div id="adminPanel" class="hidden">
+
+      <!-- Report section -->
+      <div class="card">
+        <div class="card-label">Attendance report</div>
+
+        <!-- View toggle: Log view vs % view -->
+        <div class="report-view-tabs">
+          <button class="report-view-tab active" id="viewTabLog"    onclick="switchReportView('log')">Raw Log</button>
+          <button class="report-view-tab"         id="viewTabPct"   onclick="switchReportView('pct')">Attendance %</button>
+          <button class="report-view-tab"         id="viewTabSummary" onclick="switchReportView('summary')">Member Summary</button>
+        </div>
+
+        <div class="filter-row">
+          <select id="reportPeriod" onchange="updateReportRange()">
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="custom">Custom range</option>
+          </select>
+          <select id="reportMonth" onchange="loadReport()">
+            <!-- Populated by JS -->
+          </select>
+          <select id="reportYear" onchange="loadReport()">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+
+        <!-- Custom range (hidden by default) -->
+        <div id="customRange" class="hidden" style="margin-bottom:14px">
+          <div class="field-row">
+            <div class="field" style="margin-bottom:0">
+              <label>From</label>
+              <input type="date" id="customFrom" onchange="loadReport()"/>
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>To</label>
+              <input type="date" id="customTo" onchange="loadReport()"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-summary" id="reportSummary"></div>
+
+        <!-- Attendance % view: expected sessions input -->
+        <div id="pctControls" class="hidden">
+          <div class="expected-input-row">
+            <label>Expected sessions in period:</label>
+            <input type="number" id="expectedSessions" value="4" min="1" max="52" oninput="loadPctReport()"/>
+            <span>(e.g. 4 = once per week for a month)</span>
+          </div>
+          <div class="pct-summary-note" id="pctNote"></div>
+        </div>
+
+        <div class="filter-row" style="margin-bottom:10px">
+          <select id="filterPurpose" onchange="loadReport()" style="font-size:12px;padding:8px 28px 8px 10px">
+            <option value="">All purposes</option>
+            <option value="Weekly Training">Weekly Training</option>
+            <option value="Unit Meeting">Unit Meeting</option>
+            <option value="Equipment Maintenance">Equipment Maintenance</option>
+            <option value="Admin / Planning">Admin / Planning</option>
+            <option value="Special Exercise">Special Exercise</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="filterMember" onchange="loadReport()" style="font-size:12px;padding:8px 28px 8px 10px">
+            <option value="">All members</option>
+          </select>
+          <button class="export-btn" onclick="exportCSV()">&#11123; Export CSV</button>
+        </div>
+
+        <div id="reportAlert" class="hidden"></div>
+
+        <!-- Raw log view -->
+        <div class="report-table-wrap" id="reportWrap">
+          <div class="empty-report">
+            <div class="empty-icon">&#128196;</div>
+            <p>Select a period to generate the report</p>
+          </div>
+        </div>
+
+        <!-- Attendance % view -->
+        <div id="pctWrap" class="hidden report-table-wrap"></div>
+
+        <!-- Member summary view -->
+        <div id="summaryWrap" class="hidden report-table-wrap"></div>
+      </div>
+
+      <!-- Settings -->
+      <div class="card">
+        <div class="card-label">Settings</div>
+        <div class="field">
+          <label>Google Apps Script URL</label>
+          <input type="text" id="scriptUrlAdmin" placeholder="https://script.google.com/macros/s/..."/>
+          <button onclick="saveScriptUrlAdmin()" style="margin-top:8px;padding:9px 18px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Save URL</button>
+          &nbsp;
+          <button onclick="testConnection()" style="margin-top:8px;padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Test Connection</button>
+          <div id="scriptMsg" style="font-size:12px;margin-top:6px;min-height:14px"></div>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--grey);margin:16px 0"/>
+        <div class="field">
+          <label>Change admin PIN</label>
+          <div style="display:flex;gap:8px">
+            <input type="password" id="newPin" placeholder="New 4-digit PIN" maxlength="4" style="flex:1"/>
+            <button onclick="changePIN()" style="padding:10px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font)">Update PIN</button>
+          </div>
+          <div id="pinChangeMsg" style="font-size:12px;margin-top:6px;min-height:14px"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost" onclick="lockAdmin()">&#128274; Lock Admin</button>
+    </div><!-- /adminPanel -->
+
+  </div><!-- /tabAdmin -->
+
+</div><!-- /container -->
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// POINT COOK SES — ATTENDANCE SYSTEM
+// ════════════════════════════════════════════════════════════════════
+
+// ══ CONFIG — paste your Apps Script URL here for all-device persistence ══
+const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEMwiTEEPaXodrGAafNVYlZfnVwi181MXI5jWFjVwP5Oyga3j6SuVrAx9MIu15mcQFrw/exec"; // ← PASTE YOUR SCRIPT URL HERE
+
+let SCRIPT_URL = HARDCODED_SCRIPT_URL || localStorage.getItem("ses_script_url") || "";
+let ADMIN_PIN  = localStorage.getItem("ses_admin_pin") || "1234";
+
+// In-memory attendance store (synced from Sheets on load)
+let attendance = []; // all records
+let adminUnlocked = false;
+let adminPinBuf   = "";
+let selectedPurpose = "";
+let pendingCheckout = null; // member currently checking out
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  startClock();
+  setDefaultTimes();
+  populateReportFilters();
+  if(!SCRIPT_URL){
+    document.getElementById("setupBanner").classList.remove("hidden");
+  } else {
+    document.getElementById("scriptUrlAdmin").value = SCRIPT_URL;
+  }
+  await fetchAttendance();
+  showTab("checkin");
+  // Check if member scanning QR code was previously checked in
+  autoDetectReturningMember();
+}
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function startClock(){
+  function tick(){
+    const now = new Date();
+    const h = pad2(now.getHours()), m = pad2(now.getMinutes()), s = pad2(now.getSeconds());
+    document.getElementById("clockDisplay").textContent = h+":"+m+":"+s;
+    const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    document.getElementById("dateDisplay").textContent =
+      days[now.getDay()]+", "+now.getDate()+" "+months[now.getMonth()]+" "+now.getFullYear();
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+function setDefaultTimes(){
+  const now = new Date();
+  document.getElementById("checkinTime").value  = pad2(now.getHours())+":"+pad2(now.getMinutes());
+  document.getElementById("checkoutTime").value = pad2(now.getHours())+":"+pad2(now.getMinutes());
+}
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+
+function todayISO(){
+  const d=new Date();
+  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+}
+
+function nowTimeStr(){
+  const d=new Date();
+  return pad2(d.getHours())+":"+pad2(d.getMinutes());
+}
+
+// ── Tab navigation ─────────────────────────────────────────────────────────────
+function showTab(tab){
+  ["checkin","present","admin"].forEach(t=>{
+    document.getElementById("tab"+cap(t)).classList.toggle("hidden", t!==tab);
+    document.getElementById("nav"+cap(t)).classList.toggle("active",  t===tab);
+  });
+  if(tab==="present") renderPresentList();
+  if(tab==="admin" && adminUnlocked) loadReport();
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// ── Purpose chips ──────────────────────────────────────────────────────────────
+function selPurpose(el, val){
+  document.querySelectorAll(".purpose-chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+  selectedPurpose = val;
+  document.getElementById("purposeOther").style.display = val==="Other" ? "block" : "none";
+}
+
+// ── Fetch all attendance from Sheets ─────────────────────────────────────────
+async function fetchAttendance(){
+  if(!SCRIPT_URL) return;
+  try{
+    const url = SCRIPT_URL+"?type=get_attendance&ts="+Date.now();
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const data = JSON.parse(text);
+    if(data.records && Array.isArray(data.records)){
+      attendance = data.records;
+    }
+  }catch(e){ console.warn("Fetch attendance error:",e); }
+  renderPresentList();
+  updatePresentStats();
+}
+
+// ── POST to Sheets ─────────────────────────────────────────────────────────────
+async function postToSheets(payload){
+  if(!SCRIPT_URL) return false;
+  try{
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = SCRIPT_URL+"?action=post&data="+encoded+"&ts="+Date.now();
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const result = JSON.parse(text);
+    return result.status === "success";
+  }catch(e){ console.warn("postToSheets error:",e); return false; }
+}
+
+// ── Auto detect returning member ───────────────────────────────────────────────
+function autoDetectReturningMember(){
+  // Check localStorage for a member who hasn't checked out on this device
+  const savedName = localStorage.getItem("ses_active_member");
+  if(!savedName) return;
+  // Check if they're still active in attendance (no checkout time)
+  const active = attendance.find(r=>
+    r.memberName===savedName && r.date===todayISO() && !r.checkoutTime
+  );
+  if(active){
+    showCheckoutForm(active);
+  } else {
+    localStorage.removeItem("ses_active_member");
+  }
+}
+
+function showCheckoutForm(record){
+  pendingCheckout = record;
+  document.getElementById("checkoutWelcome").textContent = "Welcome back, "+record.memberName+"!";
+  document.getElementById("checkoutSub").textContent =
+    "You checked in at "+record.checkinTime+" for "+record.purpose+". Ready to check out?";
+  document.getElementById("checkoutTime").value = nowTimeStr();
+  document.getElementById("checkinForm").classList.add("hidden");
+  document.getElementById("checkoutForm").classList.remove("hidden");
+}
+
+function cancelCheckout(){
+  pendingCheckout=null;
+  localStorage.removeItem("ses_active_member");
+  document.getElementById("checkinForm").classList.remove("hidden");
+  document.getElementById("checkoutForm").classList.add("hidden");
+}
+
+// ── Submit check-in ────────────────────────────────────────────────────────────
+async function submitCheckin(){
+  const name    = document.getElementById("memberName").value.trim();
+  const purpose = selectedPurpose==="Other"
+    ? document.getElementById("purposeOther").value.trim()
+    : selectedPurpose;
+  const time    = document.getElementById("checkinTime").value;
+  const errEl   = document.getElementById("checkinAlert");
+
+  if(!name)   { showAlertEl(errEl,"error","Please enter your name."); return; }
+  if(!purpose){ showAlertEl(errEl,"error","Please select a purpose of visit."); return; }
+  if(!time)   { showAlertEl(errEl,"error","Please set a check-in time."); return; }
+
+  // Check if already checked in today
+  const existing = attendance.find(r=>
+    r.memberName===name && r.date===todayISO() && !r.checkoutTime
+  );
+  if(existing){
+    showAlertEl(errEl,"warning",name+" is already checked in since "+existing.checkinTime+". Scroll down to check out.");
+    showCheckoutForm(existing);
+    return;
+  }
+
+  const btn = document.getElementById("checkinBtn");
+  btn.disabled=true; btn.textContent="Checking in...";
+
+  const record = {
+    id:           "ATT"+Date.now().toString().slice(-8),
+    date:         todayISO(),
+    memberName:   name,
+    purpose:      purpose,
+    checkinTime:  time,
+    checkoutTime: "",
+    duration:     "",
+    submittedAt:  new Date().toISOString()
+  };
+
+  // Add to local store immediately
+  attendance.unshift(record);
+  localStorage.setItem("ses_active_member", name);
+
+  // Sync to Sheets
+  const synced = await postToSheets({ type:"checkin", record });
+
+  btn.disabled=false; btn.textContent="Check In Now";
+  errEl.classList.add("hidden");
+
+  // Show success
+  document.getElementById("checkinForm").classList.add("hidden");
+  document.getElementById("checkinSuccess").classList.remove("hidden");
+  document.getElementById("checkinSuccessSub").innerHTML =
+    `<strong>${name}</strong> checked in at <strong>${time}</strong><br>
+     Purpose: ${purpose}<br><br>
+     ${synced?"✅ Synced to Google Sheets":"💾 Saved locally — connect Sheets for full sync"}`;
+
+  updatePresentStats();
+}
+
+// ── Submit check-out ───────────────────────────────────────────────────────────
+async function submitCheckout(){
+  if(!pendingCheckout){ cancelCheckout(); return; }
+  const time = document.getElementById("checkoutTime").value;
+  if(!time){ return; }
+
+  const btn = document.getElementById("checkoutBtn");
+  btn.disabled=true; btn.textContent="Checking out...";
+
+  // Calculate duration
+  const dur = calcDuration(pendingCheckout.checkinTime, time);
+
+  // Update local record
+  const rec = attendance.find(r=>r.id===pendingCheckout.id);
+  if(rec){ rec.checkoutTime=time; rec.duration=dur; }
+
+  localStorage.removeItem("ses_active_member");
+
+  // Sync to Sheets
+  const synced = await postToSheets({
+    type:"checkout",
+    id:pendingCheckout.id,
+    checkoutTime:time,
+    duration:dur,
+    memberName:pendingCheckout.memberName
+  });
+
+  btn.disabled=false; btn.textContent="Confirm Check Out";
+
+  // Show success
+  document.getElementById("checkoutForm").classList.add("hidden");
+  document.getElementById("checkoutSuccess").classList.remove("hidden");
+  document.getElementById("checkoutSuccessSub").innerHTML =
+    `<strong>${pendingCheckout.memberName}</strong><br>
+     ${pendingCheckout.checkinTime} → ${time}<br>
+     ${pendingCheckout.purpose}`;
+  document.getElementById("durationPill").textContent = "Duration: "+dur;
+
+  pendingCheckout=null;
+  updatePresentStats();
+}
+
+function calcDuration(inTime, outTime){
+  const [ih,im] = inTime.split(":").map(Number);
+  const [oh,om] = outTime.split(":").map(Number);
+  let mins = (oh*60+om) - (ih*60+im);
+  if(mins<0) mins+=1440; // past midnight
+  const h = Math.floor(mins/60), m = mins%60;
+  return h+"h "+pad2(m)+"m";
+}
+
+// ── Reset form ─────────────────────────────────────────────────────────────────
+function resetCheckin(){
+  selectedPurpose="";
+  document.getElementById("memberName").value="";
+  document.getElementById("purposeOther").value="";
+  document.getElementById("purposeOther").style.display="none";
+  document.querySelectorAll(".purpose-chip").forEach(c=>c.classList.remove("active"));
+  setDefaultTimes();
+  document.getElementById("checkinAlert").classList.add("hidden");
+  document.getElementById("checkinForm").classList.remove("hidden");
+  document.getElementById("checkinSuccess").classList.add("hidden");
+  document.getElementById("checkoutSuccess").classList.add("hidden");
+  document.getElementById("checkoutForm").classList.add("hidden");
+}
+
+// ── Present list ──────────────────────────────────────────────────────────────
+function renderPresentList(){
+  const today = todayISO();
+  const active   = attendance.filter(r=>r.date===today && !r.checkoutTime);
+  const checkedOut = attendance.filter(r=>r.date===today && r.checkoutTime);
+
+  // Active members
+  const el = document.getElementById("presentList");
+  if(!active.length){
+    el.innerHTML=`<div class="empty-report" style="padding:20px"><div class="empty-icon">&#128100;</div><p>No members currently signed in</p></div>`;
+  } else {
+    el.innerHTML = `<div class="checkin-list">`+active.map(r=>{
+      const initials = r.memberName.split(" ").map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+      const dur = calcDuration(r.checkinTime, nowTimeStr());
+      return`<div class="checkin-item active-item">
+        <div class="member-avatar">${initials}</div>
+        <div class="member-info">
+          <div class="member-name">${r.memberName}</div>
+          <div class="member-sub">${r.purpose} &bull; In: ${r.checkinTime}</div>
+        </div>
+        <div class="checkin-duration">${dur}</div>
+        <button class="checkout-btn" onclick="quickCheckout('${r.id}','${r.memberName}','${r.checkinTime}','${r.purpose}')">Check out</button>
+      </div>`;
+    }).join("")+`</div>`;
+  }
+
+  // Checked out today
+  const el2 = document.getElementById("checkedOutList");
+  if(!checkedOut.length){
+    el2.innerHTML=`<div style="text-align:center;color:var(--grey-md);padding:14px;font-size:13px">No check-outs recorded today yet</div>`;
+  } else {
+    el2.innerHTML=`<div class="checkin-list">`+checkedOut.map(r=>{
+      const initials=r.memberName.split(" ").map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+      return`<div class="checkin-item">
+        <div class="member-avatar" style="background:var(--grey-md)">${initials}</div>
+        <div class="member-info">
+          <div class="member-name">${r.memberName}</div>
+          <div class="member-sub">${r.purpose} &bull; ${r.checkinTime}–${r.checkoutTime}</div>
+        </div>
+        <div class="checkin-duration">${r.duration||"—"}</div>
+      </div>`;
+    }).join("")+`</div>`;
+  }
+}
+
+function quickCheckout(id, name, inTime, purpose){
+  pendingCheckout={id, memberName:name, checkinTime:inTime, purpose};
+  document.getElementById("checkoutWelcome").textContent="Checking out "+name;
+  document.getElementById("checkoutSub").textContent=
+    "Checked in at "+inTime+" for "+purpose;
+  document.getElementById("checkoutTime").value=nowTimeStr();
+  showTab("checkin");
+  document.getElementById("checkinForm").classList.add("hidden");
+  document.getElementById("checkoutForm").classList.remove("hidden");
+}
+
+function updatePresentStats(){
+  const today=todayISO();
+  const active=attendance.filter(r=>r.date===today&&!r.checkoutTime).length;
+  const todayAll=attendance.filter(r=>r.date===today).length;
+  document.getElementById("statPresent").textContent=active;
+  document.getElementById("statToday").textContent=todayAll;
+  // Avg hours from completed sessions today
+  const done=attendance.filter(r=>r.date===today&&r.duration);
+  if(done.length){
+    const totalMins=done.reduce((sum,r)=>{
+      const m=r.duration.match(/(\d+)h\s*(\d+)m/);
+      return sum+(m?parseInt(m[1])*60+parseInt(m[2]):0);
+    },0);
+    const avg=totalMins/done.length;
+    document.getElementById("statSession").textContent=(avg/60).toFixed(1)+"h";
+  } else {
+    document.getElementById("statSession").textContent="—";
+  }
+}
+
+// ── Admin PIN ─────────────────────────────────────────────────────────────────
+function adminPin(k){
+  if(k==="c"){adminPinBuf="";updateAdminDots();return;}
+  if(k==="del"){adminPinBuf=adminPinBuf.slice(0,-1);updateAdminDots();return;}
+  if(adminPinBuf.length>=4)return;
+  adminPinBuf+=k;updateAdminDots();
+  if(adminPinBuf.length===4){
+    setTimeout(()=>{
+      if(adminPinBuf===ADMIN_PIN){
+        adminUnlocked=true;
+        document.getElementById("adminPinScreen").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+        if(SCRIPT_URL) document.getElementById("scriptUrlAdmin").value=SCRIPT_URL;
+        populateReportFilters();
+        loadReport();
+      } else {
+        for(let i=0;i<4;i++){const d=document.getElementById("apd"+i);d.classList.remove("filled");d.classList.add("err");}
+        document.getElementById("adminPinErr").textContent="Incorrect PIN.";
+        setTimeout(()=>{adminPinBuf="";document.querySelectorAll(".pin-dot").forEach(d=>d.classList.remove("err"));updateAdminDots();},900);
+      }
+    },120);
+  }
+}
+function updateAdminDots(){
+  for(let i=0;i<4;i++){const d=document.getElementById("apd"+i);d.classList.remove("err");d.classList.toggle("filled",i<adminPinBuf.length);}
+}
+function lockAdmin(){
+  adminUnlocked=false;adminPinBuf="";updateAdminDots();
+  document.getElementById("adminPinScreen").classList.remove("hidden");
+  document.getElementById("adminPanel").classList.add("hidden");
+  document.getElementById("adminPinErr").textContent="";
+}
+
+// ── Report filters ─────────────────────────────────────────────────────────────
+function populateReportFilters(){
+  const now=new Date();
+  const monthSel=document.getElementById("reportMonth");
+  const yearSel=document.getElementById("reportYear");
+  const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  monthSel.innerHTML=months.map((m,i)=>
+    `<option value="${pad2(i+1)}" ${i===now.getMonth()?"selected":""}>${m}</option>`
+  ).join("");
+
+  // Years: current year and 2 back
+  yearSel.innerHTML="";
+  for(let y=now.getFullYear();y>=now.getFullYear()-2;y--){
+    yearSel.innerHTML+=`<option value="${y}" ${y===now.getFullYear()?"selected":""}>${y}</option>`;
+  }
+
+  // Populate member filter from attendance data
+  const memberSel=document.getElementById("filterMember");
+  const names=[...new Set(attendance.map(r=>r.memberName))].sort();
+  memberSel.innerHTML=`<option value="">All members</option>`+
+    names.map(n=>`<option value="${n}">${n}</option>`).join("");
+
+  // Default custom range to current month
+  const y=now.getFullYear(),m=pad2(now.getMonth()+1);
+  const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  document.getElementById("customFrom").value=`${y}-${m}-01`;
+  document.getElementById("customTo").value=`${y}-${m}-${pad2(lastDay)}`;
+}
+
+function updateReportRange(){
+  const period=document.getElementById("reportPeriod").value;
+  const isCustom=period==="custom";
+  document.getElementById("customRange").classList.toggle("hidden",!isCustom);
+  document.getElementById("reportMonth").classList.toggle("hidden",isCustom||period==="quarterly");
+
+  // For quarterly: set month to Q start months
+  if(period==="quarterly"){
+    const now=new Date();
+    const q=Math.floor(now.getMonth()/3);
+    const qMonths=["01","04","07","10"];
+    document.getElementById("reportMonth").value=qMonths[q];
+  }
+  loadReport();
+}
+
+function getReportRange(){
+  const period=document.getElementById("reportPeriod").value;
+  const year=document.getElementById("reportYear").value;
+  if(period==="custom"){
+    return{from:document.getElementById("customFrom").value,to:document.getElementById("customTo").value};
+  }
+  if(period==="monthly"){
+    const month=document.getElementById("reportMonth").value;
+    const lastDay=new Date(parseInt(year),parseInt(month),0).getDate();
+    return{from:`${year}-${month}-01`,to:`${year}-${month}-${pad2(lastDay)}`};
+  }
+  // Quarterly
+  const month=document.getElementById("reportMonth").value;
+  const qStart=parseInt(month);
+  const qEnd=Math.min(qStart+2,12);
+  const lastDay=new Date(parseInt(year),qEnd,0).getDate();
+  return{from:`${year}-${pad2(qStart)}-01`,to:`${year}-${pad2(qEnd)}-${pad2(lastDay)}`};
+}
+
+function loadReport(){
+  if(!adminUnlocked) return;
+  const {from,to}=getReportRange();
+  const purposeFilter=document.getElementById("filterPurpose").value;
+  const memberFilter=document.getElementById("filterMember").value;
+
+  let records=attendance.filter(r=>{
+    if(r.date<from||r.date>to) return false;
+    if(purposeFilter&&r.purpose!==purposeFilter) return false;
+    if(memberFilter&&r.memberName!==memberFilter) return false;
+    return true;
+  }).sort((a,b)=>a.date>b.date?-1:1);
+
+  // Update member filter options
+  const allNames=[...new Set(attendance.map(r=>r.memberName))].sort();
+  const memberSel=document.getElementById("filterMember");
+  const curVal=memberSel.value;
+  memberSel.innerHTML=`<option value="">All members</option>`+
+    allNames.map(n=>`<option value="${n}" ${n===curVal?"selected":""}>${n}</option>`).join("");
+
+  // Summary cards
+  const uniqueMembers=new Set(records.map(r=>r.memberName)).size;
+  const completedSessions=records.filter(r=>r.duration).length;
+  const totalMins=records.filter(r=>r.duration).reduce((sum,r)=>{
+    const m=r.duration.match(/(\d+)h\s*(\d+)m/);
+    return sum+(m?parseInt(m[1])*60+parseInt(m[2]):0);
+  },0);
+  const totalHrs=(totalMins/60).toFixed(1);
+
+  document.getElementById("reportSummary").innerHTML=`
+    <div class="rs-card"><div class="rs-num">${records.length}</div><div class="rs-lbl">Sessions</div></div>
+    <div class="rs-card"><div class="rs-num">${uniqueMembers}</div><div class="rs-lbl">Members</div></div>
+    <div class="rs-card"><div class="rs-num">${completedSessions}</div><div class="rs-lbl">Completed</div></div>
+    <div class="rs-card"><div class="rs-num">${totalHrs}</div><div class="rs-lbl">Total hrs</div></div>`;
+
+  const wrap=document.getElementById("reportWrap");
+  if(!records.length){
+    wrap.innerHTML=`<div class="empty-report"><div class="empty-icon">&#128196;</div><p>No records found for this period</p></div>`;
+    return;
+  }
+
+  const purposeClass={
+    "Weekly Training":"pt-training","Unit Meeting":"pt-admin",
+    "Equipment Maintenance":"pt-maintenance","Admin / Planning":"pt-admin",
+    "Special Exercise":"pt-training","Other":"pt-other"
+  };
+
+  wrap.innerHTML=`<table class="report-table">
+    <thead><tr>
+      <th>Date</th><th>Member</th><th>Purpose</th><th>In</th><th>Out</th><th>Duration</th>
+    </tr></thead>
+    <tbody>`+records.map(r=>`
+    <tr>
+      <td style="white-space:nowrap;font-family:'Barlow Condensed',sans-serif;font-weight:600">${fmtDate(r.date)}</td>
+      <td style="font-weight:600">${r.memberName}</td>
+      <td><span class="purpose-tag ${purposeClass[r.purpose]||'pt-other'}">${r.purpose}</span></td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:600">${r.checkinTime||"—"}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:600">${r.checkoutTime||"pending"}</td>
+      <td><span class="duration-tag">${r.duration||"—"}</span></td>
+    </tr>`).join("")+`</tbody></table>`;
+
+  // Also refresh active alternate views if open
+  if(currentReportView==="pct")     loadPctReport();
+  if(currentReportView==="summary") loadSummaryReport();
+}
+
+function fmtDate(iso){
+  if(!iso)return"";
+  const[y,m,d]=iso.split("-");
+  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return parseInt(d)+" "+months[parseInt(m)-1]+" "+y;
+}
+
+// ── Report view toggle ────────────────────────────────────────────────────────
+let currentReportView = "log";
+
+function switchReportView(view){
+  currentReportView = view;
+  ["log","pct","summary"].forEach(v=>{
+    document.getElementById("viewTab"+cap(v)).classList.toggle("active", v===view);
+  });
+  document.getElementById("reportWrap").classList.toggle("hidden",  view!=="log");
+  document.getElementById("pctWrap").classList.toggle("hidden",     view!=="pct");
+  document.getElementById("summaryWrap").classList.toggle("hidden", view!=="summary");
+  document.getElementById("pctControls").classList.toggle("hidden", view!=="pct");
+
+  if(view==="pct")     loadPctReport();
+  if(view==="summary") loadSummaryReport();
+}
+
+// ── Attendance % report ───────────────────────────────────────────────────────
+function loadPctReport(){
+  if(!adminUnlocked) return;
+  const {from,to}    = getReportRange();
+  const purposeFilter= document.getElementById("filterPurpose").value;
+  const expected     = parseInt(document.getElementById("expectedSessions").value)||1;
+  const wrap         = document.getElementById("pctWrap");
+
+  // Filter records matching period + purpose
+  const records = attendance.filter(r=>{
+    if(r.date<from||r.date>to) return false;
+    if(purposeFilter&&r.purpose!==purposeFilter) return false;
+    return true;
+  });
+
+  if(!records.length){
+    wrap.innerHTML=`<div class="empty-report"><div class="empty-icon">&#128202;</div><p>No records for this period / purpose</p></div>`;
+    document.getElementById("pctNote").textContent="";
+    return;
+  }
+
+  // Group by member
+  const memberMap = {};
+  records.forEach(r=>{
+    if(!memberMap[r.memberName]) memberMap[r.memberName]={sessions:0,totalMins:0,dates:new Set()};
+    memberMap[r.memberName].dates.add(r.date);
+    memberMap[r.memberName].sessions++;
+    if(r.duration){
+      const m=r.duration.match(/(\d+)h\s*(\d+)m/);
+      if(m) memberMap[r.memberName].totalMins+=parseInt(m[1])*60+parseInt(m[2]);
+    }
+  });
+
+  // Unique dates in period that had ANY activity (actual sessions held)
+  const activeDates = new Set(records.map(r=>r.date));
+  const actualSessions = activeDates.size;
+
+  // Build rows
+  const rows = Object.entries(memberMap).map(([name,data])=>{
+    const attended = data.dates.size;
+    const pct      = Math.round((attended / expected) * 100);
+    const hrs      = (data.totalMins/60).toFixed(1);
+    return {name, attended, expected, pct, hrs};
+  }).sort((a,b)=>b.pct-a.pct);
+
+  // Summary note
+  const periodLabel = getPeriodLabel(from, to);
+  document.getElementById("pctNote").textContent =
+    `Period: ${periodLabel}  •  ${actualSessions} session date(s) recorded  •  ${rows.length} member(s)  •  Expected sessions: ${expected}`;
+
+  // Colour thresholds
+  function pctClass(p){ return p>=80?"high":p>=50?"mid":"low"; }
+  function rankMedal(i){ return i===0?"🥇":i===1?"🥈":i===2?"🥉":""; }
+
+  wrap.innerHTML = `<table class="pct-table">
+    <thead><tr>
+      <th>#</th><th>Member</th><th>Attended</th><th>Attendance %</th><th>Total Hrs</th>
+    </tr></thead>
+    <tbody>`+rows.map((r,i)=>{
+      const cls   = pctClass(r.pct);
+      const width = Math.min(r.pct, 100);
+      return`<tr>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--grey-md)">${rankMedal(i)}${i+1}</td>
+        <td style="font-weight:700">${r.name}</td>
+        <td><span class="session-badge">${r.attended} / ${r.expected}</span></td>
+        <td>
+          <div class="pct-bar-wrap">
+            <div class="pct-bar-bg"><div class="pct-bar-fill pct-bar-${cls}" style="width:${width}%"></div></div>
+            <span class="pct-label pct-${cls}">${r.pct}%</span>
+          </div>
+        </td>
+        <td><span class="hrs-badge">${r.hrs}h</span></td>
+      </tr>`;
+    }).join("")+`</tbody></table>`;
+}
+
+// ── Member summary report ─────────────────────────────────────────────────────
+function loadSummaryReport(){
+  if(!adminUnlocked) return;
+  const {from,to}     = getReportRange();
+  const memberFilter  = document.getElementById("filterMember").value;
+  const wrap          = document.getElementById("summaryWrap");
+
+  const records = attendance.filter(r=>{
+    if(r.date<from||r.date>to) return false;
+    if(memberFilter&&r.memberName!==memberFilter) return false;
+    return true;
+  });
+
+  if(!records.length){
+    wrap.innerHTML=`<div class="empty-report"><div class="empty-icon">&#128202;</div><p>No records for this period</p></div>`;
+    return;
+  }
+
+  // Group by member, then by purpose
+  const memberMap = {};
+  records.forEach(r=>{
+    if(!memberMap[r.memberName]) memberMap[r.memberName]={purposes:{},totalMins:0,sessions:0,dates:new Set()};
+    const mm = memberMap[r.memberName];
+    mm.sessions++;
+    mm.dates.add(r.date);
+    if(!mm.purposes[r.purpose]) mm.purposes[r.purpose]=0;
+    mm.purposes[r.purpose]++;
+    if(r.duration){
+      const m=r.duration.match(/(\d+)h\s*(\d+)m/);
+      if(m) mm.totalMins+=parseInt(m[1])*60+parseInt(m[2]);
+    }
+  });
+
+  const purposeClass={"Weekly Training":"pt-training","Unit Meeting":"pt-admin","Equipment Maintenance":"pt-maintenance","Admin / Planning":"pt-admin","Special Exercise":"pt-training","Other":"pt-other"};
+
+  const memberRows = Object.entries(memberMap)
+    .sort((a,b)=>b[1].sessions-a[1].sessions);
+
+  wrap.innerHTML = memberRows.map(([name,data])=>{
+    const hrs=(data.totalMins/60).toFixed(1);
+    const purposeTags=Object.entries(data.purposes)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([p,cnt])=>`<span class="purpose-tag ${purposeClass[p]||'pt-other'}" style="margin:2px">${p} (${cnt})</span>`)
+      .join(" ");
+    return`<div style="border:1px solid #EEF0F4;border-radius:var(--radius-sm);padding:14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+        <div style="font-size:15px;font-weight:700;color:var(--navy)">${name}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="session-badge">${data.sessions} sessions</span>
+          <span class="hrs-badge">${hrs}h total</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--grey-md);margin-bottom:6px">${data.dates.size} unique date(s) attended</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${purposeTags}</div>
+    </div>`;
+  }).join("");
+}
+
+function getPeriodLabel(from, to){
+  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const [fy,fm,fd]=from.split("-");
+  const [ty,tm,td]=to.split("-");
+  if(from===to) return `${parseInt(fd)} ${months[parseInt(fm)-1]} ${fy}`;
+  if(fm===tm&&fy===ty) return `${months[parseInt(fm)-1]} ${fy}`;
+  return `${parseInt(fd)} ${months[parseInt(fm)-1]} – ${parseInt(td)} ${months[parseInt(tm)-1]} ${ty}`;
+}
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function exportCSV(){
+  const{from,to}=getReportRange();
+  const purposeFilter=document.getElementById("filterPurpose").value;
+  const memberFilter=document.getElementById("filterMember").value;
+  let records=attendance.filter(r=>{
+    if(r.date<from||r.date>to)return false;
+    if(purposeFilter&&r.purpose!==purposeFilter)return false;
+    if(memberFilter&&r.memberName!==memberFilter)return false;
+    return true;
+  }).sort((a,b)=>a.date>b.date?-1:1);
+
+  const header=["Date","Member Name","Purpose","Check-in Time","Check-out Time","Duration"];
+  const rows=records.map(r=>[
+    r.date, r.memberName, r.purpose, r.checkinTime||"", r.checkoutTime||"", r.duration||""
+  ]);
+  let csv;
+  if(currentReportView==="pct"){
+    // Export attendance % summary
+    const expected=parseInt(document.getElementById("expectedSessions").value)||1;
+    const purposeFilter=document.getElementById("filterPurpose").value;
+    const recs=attendance.filter(r=>{
+      if(r.date<from||r.date>to)return false;
+      if(purposeFilter&&r.purpose!==purposeFilter)return false;
+      return true;
+    });
+    const memberMap={};
+    recs.forEach(r=>{
+      if(!memberMap[r.memberName])memberMap[r.memberName]={dates:new Set(),totalMins:0};
+      memberMap[r.memberName].dates.add(r.date);
+      if(r.duration){const m=r.duration.match(/(\d+)h\s*(\d+)m/);if(m)memberMap[r.memberName].totalMins+=parseInt(m[1])*60+parseInt(m[2]);}
+    });
+    const pctHeader=["Member","Sessions Attended","Expected Sessions","Attendance %","Total Hours"];
+    const pctRows=Object.entries(memberMap).sort((a,b)=>b[1].dates.size-a[1].dates.size).map(([name,data])=>{
+      const attended=data.dates.size;
+      const pct=Math.round((attended/expected)*100);
+      return[name,attended,expected,pct+"%",(data.totalMins/60).toFixed(1)+"h"];
+    });
+    csv=[pctHeader,...pctRows].map(r=>r.map(v=>`"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  } else {
+    csv=[header,...rows].map(r=>r.map(v=>`"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  }
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`SES_Attendance_${currentReportView}_${from}_to_${to}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function saveScriptUrl(){
+  const v=document.getElementById("scriptUrlInput").value.trim();
+  if(!v)return;
+  SCRIPT_URL=v; localStorage.setItem("ses_script_url",v);
+  document.getElementById("setupBanner").classList.add("hidden");
+  if(document.getElementById("scriptUrlAdmin"))
+    document.getElementById("scriptUrlAdmin").value=v;
+  fetchAttendance();
+}
+function saveScriptUrlAdmin(){
+  const v=document.getElementById("scriptUrlAdmin").value.trim();
+  if(!v)return;
+  SCRIPT_URL=v; localStorage.setItem("ses_script_url",v);
+  document.getElementById("setupBanner").classList.add("hidden");
+  const m=document.getElementById("scriptMsg");
+  m.style.color="var(--green)";m.textContent="✓ Saved — fetching records...";
+  setTimeout(()=>m.textContent="",4000);
+  fetchAttendance().then(loadReport);
+}
+async function testConnection(){
+  const m=document.getElementById("scriptMsg");
+  if(!SCRIPT_URL){m.style.color="var(--red)";m.textContent="No URL saved.";return;}
+  m.style.color="var(--grey-md)";m.textContent="Testing...";
+  try{
+    const url=SCRIPT_URL+"?type=get_attendance&ts="+Date.now();
+    const resp=await fetch(url);
+    const text=await resp.text();
+    if(text.includes("accounts.google.com")){
+      m.style.color="var(--red)";
+      m.textContent="❌ Access denied. Redeploy script with Who has access: Anyone.";
+    } else {
+      const data=JSON.parse(text);
+      if(data.records!==undefined){
+        m.style.color="var(--green)";
+        m.textContent="✅ Connected! "+data.records.length+" record(s) found.";
+        attendance=data.records; renderPresentList(); updatePresentStats(); loadReport();
+      } else {
+        m.style.color="var(--orange)";m.textContent="⚠️ Connected but unexpected response.";
+      }
+    }
+  }catch(e){m.style.color="var(--red)";m.textContent="❌ Could not reach URL: "+e.message;}
+  setTimeout(()=>m.textContent="",8000);
+}
+function changePIN(){
+  const v=document.getElementById("newPin").value.trim();
+  const m=document.getElementById("pinChangeMsg");
+  if(!/^\d{4}$/.test(v)){m.style.color="var(--red)";m.textContent="Must be exactly 4 digits.";return;}
+  ADMIN_PIN=v; localStorage.setItem("ses_admin_pin",v);
+  m.style.color="var(--green)";m.textContent="✓ PIN updated.";
+  document.getElementById("newPin").value="";
+  setTimeout(()=>m.textContent="",3000);
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function showAlertEl(el,type,msg){
+  el.className="alert "+type;
+  el.innerHTML=`<span class="alert-icon">${type==="error"?"⚠️":type==="warning"?"⚠️":"ℹ️"}</span><span>${msg}</span>`;
+  el.classList.remove("hidden");
+  setTimeout(()=>el.classList.add("hidden"),6000);
+}
+
+init();
+</script>
+</body>
+</html>
